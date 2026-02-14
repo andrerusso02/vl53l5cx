@@ -1,0 +1,10 @@
+description: |
+    STMicroelectronics VL53L5CX. 
+
+compatible: "st,vl53l5cx"
+
+include: [sensor-device.yaml, i2c-device.yaml]
+
+# properties:
+#   TODO
+
