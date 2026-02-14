@@ -19,7 +19,7 @@
 
 
 
-#include "platform.h"
+#include "vl53l5cx_platform.h"
 
 /**
  * @brief Current driver version.

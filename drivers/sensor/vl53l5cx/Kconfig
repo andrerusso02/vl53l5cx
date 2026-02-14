@@ -1,0 +1,21 @@
+# VL53L5CX configuration
+
+menuconfig VL53L5CX
+    bool "VL53L5CX Time of Flight sensor"
+    default y
+    depends on DT_HAS_ST_VL53L5CX_ENABLED
+    select I2C
+    help
+      Enable driver for VL53L5CX I2C-based multizone ToF sensor.
+
+if VL53L5CX
+
+config VL53L5CX_LPn_PIN
+    bool "Manage LPn (Low Power) pin"
+    help
+      Enable if you want the driver to manage the hardware reset/power-down pin.
+      If disabled, the sensor must be pulled high externally.
+
+endif # VL53L5CX
+
+# TODO: add interrupt support

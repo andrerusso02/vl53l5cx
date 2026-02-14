@@ -1,0 +1,6 @@
+&i2c1 {
+    vdsl53l5cx: vl53l5cx@52 {
+        compatible = "st,vl53l5cx";
+        reg = <0x52>;
+    };
+};

@@ -1,0 +1,5 @@
+build:
+  cmake: .                         # Look for CMakeLists.txt in the root of this module
+  kconfig: drivers/sensor/vl53l5cx/Kconfig         # Load the driver's configuration menu
+  settings:
+    dts_root: .                    # Search this module for a 'dts' folder with bindings

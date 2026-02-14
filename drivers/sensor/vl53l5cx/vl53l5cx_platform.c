@@ -16,7 +16,7 @@
   ******************************************************************************
   */
 
-#include "platform.h"
+#include "vl53l5cx_platform.h"
 
 uint8_t RdByte(
 		VL53L5CX_Platform *p_platform,
