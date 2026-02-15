@@ -12,7 +12,8 @@ struct vl53l5cx_config {
 
 struct vl53l5cx_data {
 	bool started;
-	VL53L5CX_ResultsData results;
+	VL53L5CX_Configuration vl53l5cx_configuration;
+	VL53L5CX_ResultsData results_data;
 };
 
 

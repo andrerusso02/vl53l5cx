@@ -5,6 +5,8 @@
 static int vl53l5cx_init_zephyr(const struct device *dev)
 {
     printk("Initializing vl53l5cx\n");
+    struct vl53l5cx_data *data = dev->data;
+    vl53l5cx_init(&data->vl53l5cx_configuration);
     return 0;
 }
 
