@@ -1,1 +1,2 @@
 add_subdirectory_ifdef(CONFIG_VL53L5CX drivers/sensor/vl53l5cx)
+add_subdirectory(modules)

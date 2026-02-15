@@ -1,0 +1,7 @@
+if(CONFIG_VL53L5CX)
+zephyr_include_directories(vl53l5cx/api/core ../drivers/sensor/vl53l5cx)
+zephyr_library_sources(vl53l5cx/api/core/vl53l5cx_api.c)
+zephyr_library_sources(vl53l5cx/api/core/vl53l5cx_plugin_xtalk.c)
+zephyr_library_sources(vl53l5cx/api/core/vl53l5cx_plugin_motion_indicator.c)
+zephyr_library_sources(vl53l5cx/api/core/vl53l5cx_plugin_detection_thresholds.c)
+endif()  
