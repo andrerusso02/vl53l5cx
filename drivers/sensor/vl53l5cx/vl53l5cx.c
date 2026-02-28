@@ -112,7 +112,14 @@ static int vl53l5cx_attr_get(const struct device *dev,
         val->val2 = 0;
         return 0;
     }
+    if (attr == SENSOR_ATTR_SAMPLING_FREQUENCY) {
+        val->val1 = CONFIG_VL53L5CX_RANGING_FREQ;
+        val->val2 = 0;
+        return 0;
+    }
+
     return -ENOTSUP;
+
 }
 
 

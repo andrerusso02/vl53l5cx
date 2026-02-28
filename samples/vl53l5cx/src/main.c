@@ -32,26 +32,33 @@ int main(void)
 
     printf("VL53L5CX Ranging Started...\n");
 
-int num_zones = 16; /* Default fallback */
+	int num_zones = 16; /* Default fallback */
     struct sensor_value res_val;
-
-    /* Query the driver for the current resolution */
     if (sensor_attr_get(dev, SENSOR_CHAN_ALL, 
                         (enum sensor_attribute)SENSOR_ATTR_RESOLUTION, 
                         &res_val) == 0) {
         num_zones = res_val.val1; 
     }
 
+	int freq_hz = 10; /* Default fallback */
+	struct sensor_value freq_val;
+	if (sensor_attr_get(dev, SENSOR_CHAN_ALL, 
+						(enum sensor_attribute)SENSOR_ATTR_SAMPLING_FREQUENCY, 
+						&freq_val) == 0) {
+		freq_hz = freq_val.val1;
+	}
+
 	printf("VL53L5CX Resolution: %dx%d (%d zones)\n", 
 			 num_zones == 64 ? 8 : 4, 
 			 num_zones == 64 ? 8 : 4, 
 			 num_zones);
+	printf("VL53L5CX Sampling Frequency: %d Hz\n", freq_hz);
 
     while (1) {
         ret = sensor_sample_fetch(dev);
         if (ret != 0) {
             printf("Fetch failed: %d\n", ret);
-            k_msleep(100);
+            k_msleep(1000/freq_hz);
             continue;
         }
 
@@ -69,7 +76,7 @@ int num_zones = 16; /* Default fallback */
             if ((i + 1) % grid_width == 0) printf("\n");
         }
 
-        k_msleep(100); // 10Hz update rate
+        k_msleep(1000/freq_hz);
     }
 
     return 0;
