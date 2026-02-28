@@ -1,6 +1,18 @@
 &i2c1 {
-    vdsl53l5cx: vl53l5cx@52 {
+    vdsl53l5cx: vl53l5cx@29 {
         compatible = "st,vl53l5cx";
-        reg = <0x52>;
+        reg = <0x29>;
+        
     };
+    clock-frequency = <100000>;
+};
+
+&i2c1_scl_pb8 {
+    /delete-property/ bias-pull-up;
+    bias-disable;
+};
+
+&i2c1_sda_pb9 {
+    /delete-property/ bias-pull-up;
+    bias-disable;  
 };
