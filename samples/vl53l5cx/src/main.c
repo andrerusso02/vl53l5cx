@@ -32,8 +32,22 @@ int main(void)
 
     printf("VL53L5CX Ranging Started...\n");
 
+int num_zones = 16; /* Default fallback */
+    struct sensor_value res_val;
+
+    /* Query the driver for the current resolution */
+    if (sensor_attr_get(dev, SENSOR_CHAN_ALL, 
+                        (enum sensor_attribute)SENSOR_ATTR_RESOLUTION, 
+                        &res_val) == 0) {
+        num_zones = res_val.val1; 
+    }
+
+	printf("VL53L5CX Resolution: %dx%d (%d zones)\n", 
+			 num_zones == 64 ? 8 : 4, 
+			 num_zones == 64 ? 8 : 4, 
+			 num_zones);
+
     while (1) {
-        /* 2. Fetch data from hardware (Blocking call) */
         ret = sensor_sample_fetch(dev);
         if (ret != 0) {
             printf("Fetch failed: %d\n", ret);
@@ -41,19 +55,18 @@ int main(void)
             continue;
         }
 
-        /* 3. Loop through 16 zones (for 4x4 resolution) */
-        /* If using 8x8, change this loop to 64 */
-        printf("\033[H\033[J"); // Clear terminal screen
+		printf("\033[H\033[J"); // Clear terminal screen
         printf("Zonal Distances (meters):\n-------------------------\n");
 
-        for (int i = 0; i < 64; i++) {
+        for (int i = 0; i < num_zones; i++) {
             sensor_channel_get(dev, 
                                (enum sensor_channel)(SENSOR_CHAN_VL53L5CX_DISTANCE_BASE + i), 
                                &value);
 
             printf("[%2d]: %d.%03dm  ", i, value.val1, value.val2 / 1000);
             
-            if ((i + 1) % 8 == 0) printf("\n"); // Format as a 8x8 grid
+            int grid_width = (num_zones == 64) ? 8 : 4;
+            if ((i + 1) % grid_width == 0) printf("\n");
         }
 
         k_msleep(100); // 10Hz update rate

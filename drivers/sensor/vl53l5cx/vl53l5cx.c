@@ -24,21 +24,26 @@ static int vl53l5cx_initialize(const struct device *dev)
         LOG_ERR("Failed to upload firmware to VL53L5CX");
         return -EIO;
     }
-    if (vl53l5cx_set_resolution(&data->st_device, VL53L5CX_RESOLUTION_8X8) != VL53L5CX_STATUS_OK)
-    {
+    
+    data->resolution = VL53L5CX_RESOLUTION_4X4;
+#ifdef CONFIG_VL53L5CX_RESOLUTION_8X8
+    data-> resolution = VL53L5CX_RESOLUTION_8X8;
+#endif
+
+    if (vl53l5cx_set_resolution(&data->st_device, data->resolution) != VL53L5CX_STATUS_OK) {
         LOG_ERR("Failed to set resolution");
         return -EIO;
     }
-    if (vl53l5cx_set_ranging_frequency_hz(&data->st_device, 10) != VL53L5CX_STATUS_OK)
-    {
-        LOG_ERR("Failed to set ranging frequency");
+
+    if (vl53l5cx_set_ranging_frequency_hz(&data->st_device, CONFIG_VL53L5CX_RANGING_FREQ) != VL53L5CX_STATUS_OK) {
+        LOG_ERR("Failed to set frequency");
         return -EIO;
     }
 
-    // Cache resolution for channel_get validation
-    data->resolution = VL53L5CX_RESOLUTION_8X8;  // TODO
-
-    LOG_INF("VL53L5CX initialized successfully");
+    LOG_INF("VL53L5CX initialized: %s @ %dHz", 
+            data->resolution == VL53L5CX_RESOLUTION_4X4 ? "4x4" : "8x8",
+            CONFIG_VL53L5CX_RANGING_FREQ);
+    
     return 0;
 }
 
@@ -88,6 +93,25 @@ struct vl53l5cx_data *data = dev->data;
         }
     }
 
+    return -ENOTSUP;
+}
+
+
+static int vl53l5cx_attr_get(const struct device *dev,
+                             enum sensor_channel chan,
+                             enum sensor_attribute attr,
+                             struct sensor_value *val)
+{
+    struct vl53l5cx_data *data = dev->data;
+
+    if (chan != SENSOR_CHAN_ALL) {
+        return -ENOTSUP;
+    }
+    if (attr == SENSOR_ATTR_RESOLUTION) {
+        val->val1 = data->resolution; 
+        val->val2 = 0;
+        return 0;
+    }
     return -ENOTSUP;
 }
 
@@ -159,6 +183,7 @@ static int vl53l5cx_channel_get(const struct device *dev,
 
 static const struct sensor_driver_api vl53l5cx_api_funcs = {
     .attr_set = vl53l5cx_attr_set,
+    .attr_get = vl53l5cx_attr_get,
     .sample_fetch = vl53l5cx_sample_fetch,
     .channel_get = vl53l5cx_channel_get,
 };

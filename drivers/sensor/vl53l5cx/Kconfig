@@ -10,11 +10,30 @@ menuconfig VL53L5CX
 
 if VL53L5CX
 
-config VL53L5CX_LPn_PIN
-    bool "Manage LPn (Low Power) pin"
+menu "VL53L5CX Options"
+
+choice VL53L5CX_RESOLUTION
+    prompt "Sensor resolution"
+    default VL53L5CX_RESOLUTION_4X4
     help
-      Enable if you want the driver to manage the hardware reset/power-down pin.
-      If disabled, the sensor must be pulled high externally.
+      Set the spatial resolution of the sensor.
+
+config VL53L5CX_RESOLUTION_4X4
+    bool "4x4 (16 zones)"
+
+config VL53L5CX_RESOLUTION_8X8
+    bool "8x8 (64 zones)"
+
+endchoice
+
+config VL53L5CX_RANGING_FREQ
+    int "Ranging frequency (Hz)"
+    default 10
+    range 1 60
+    help
+      Frequency of measurements.
+
+endmenu
 
 endif # VL53L5CX
 

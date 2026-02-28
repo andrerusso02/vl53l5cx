@@ -18,7 +18,7 @@ struct vl53l5cx_config {
 
 struct vl53l5cx_data {
     VL53L5CX_Configuration st_device;
-    bool is_ranging;
     VL53L5CX_ResultsData last_results;
+    bool is_ranging;
     uint8_t resolution;
 };
