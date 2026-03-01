@@ -1,7 +1,7 @@
 &i2c1 {
     vdsl53l5cx: vl53l5cx@29 {
         compatible = "st,vl53l5cx";
-        reg = <0x30>;
+        reg = <0x29>;
         lpn-gpios = <&gpioa 5 GPIO_ACTIVE_HIGH>;
         
     };
