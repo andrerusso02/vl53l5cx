@@ -12,19 +12,16 @@
 int main(void)
 {
     const struct device *dev = DEVICE_DT_GET_ANY(st_vl53l5cx);
-    struct sensor_value value;
     struct sensor_value enable = { .val1 = 1 };
-    int ret;
+    struct sensor_value result_value;
+	int ret;
 
     if (!device_is_ready(dev)) {
         printf("Sensor device not ready\n");
         return 0;
     }
 
-    /* 1. Start Ranging */
-    ret = sensor_attr_set(dev, SENSOR_CHAN_ALL, 
-                          (enum sensor_attribute)SENSOR_ATTR_VL53L5CX_RANGING_STATE, 
-                          &enable);
+    ret = sensor_attr_set(dev, SENSOR_CHAN_ALL, (enum sensor_attribute)SENSOR_ATTR_VL53L5CX_RANGING_STATE, &enable);
     if (ret != 0) {
         printf("Failed to start ranging: %d\n", ret);
         return 0;
@@ -32,21 +29,21 @@ int main(void)
 
     printf("VL53L5CX Ranging Started...\n");
 
-	int num_zones = 16; /* Default fallback */
-    struct sensor_value res_val;
-    if (sensor_attr_get(dev, SENSOR_CHAN_ALL, 
-                        (enum sensor_attribute)SENSOR_ATTR_RESOLUTION, 
-                        &res_val) == 0) {
-        num_zones = res_val.val1; 
+    result_value = (struct sensor_value){0};
+	ret =sensor_attr_get(dev, SENSOR_CHAN_ALL, SENSOR_ATTR_RESOLUTION, &result_value);
+    if (ret != 0) {
+        printf("Failed to get resolution: %d\n", ret);
+		return 0;
     }
+	int num_zones = result_value.val1;
 
-	int freq_hz = 10; /* Default fallback */
-	struct sensor_value freq_val;
-	if (sensor_attr_get(dev, SENSOR_CHAN_ALL, 
-						(enum sensor_attribute)SENSOR_ATTR_SAMPLING_FREQUENCY, 
-						&freq_val) == 0) {
-		freq_hz = freq_val.val1;
+	result_value = (struct sensor_value){0};
+	ret = sensor_attr_get(dev, SENSOR_CHAN_ALL, SENSOR_ATTR_SAMPLING_FREQUENCY, &result_value);
+	if (ret != 0) {
+		printf("Failed to get sampling frequency: %d\n", ret);
+		return 0;
 	}
+	int freq_hz = result_value.val1;
 
 	printf("VL53L5CX Resolution: %dx%d (%d zones)\n", 
 			 num_zones == 64 ? 8 : 4, 
@@ -66,11 +63,9 @@ int main(void)
         printf("Zonal Distances (meters):\n-------------------------\n");
 
         for (int i = 0; i < num_zones; i++) {
-            sensor_channel_get(dev, 
-                               (enum sensor_channel)(SENSOR_CHAN_VL53L5CX_DISTANCE_BASE + i), 
-                               &value);
+            sensor_channel_get(dev, (enum sensor_channel)(SENSOR_CHAN_VL53L5CX_DISTANCE_BASE + i), &result_value);
 
-            printf("[%2d]: %d.%03dm  ", i, value.val1, value.val2 / 1000);
+            printf("[%2d]: %d.%03dm  ", i, result_value.val1, result_value.val2 / 1000);
             
             int grid_width = (num_zones == 64) ? 8 : 4;
             if ((i + 1) % grid_width == 0) printf("\n");
