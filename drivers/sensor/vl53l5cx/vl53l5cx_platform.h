@@ -19,6 +19,10 @@ typedef struct
 	 * needs to be added */
 	/* Example for most standard platform : I2C address of sensor */
     const struct i2c_dt_spec *i2c;
+	/** 
+     * We need to bypass the i2c_dt_spec address, in order to support dynamic address assignment
+     * */
+    uint16_t address;
 } VL53L5CX_Platform;
 
 

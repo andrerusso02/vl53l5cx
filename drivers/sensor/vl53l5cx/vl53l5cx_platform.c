@@ -1,7 +1,6 @@
 #include "vl53l5cx_platform.h"
 #include <zephyr/sys/byteorder.h>
 #include <zephyr/kernel.h>
-#include "vl53l5cx_platform.h"
 #include <string.h>
 
 #define VL53L5CX_MAX_I2C_CHUNK_SIZE 1024 
@@ -30,7 +29,7 @@ uint8_t WrMulti(VL53L5CX_Platform *p_platform, uint16_t RegisterAdress,
         msgs[1].len = current_chunk_size;
         msgs[1].flags = I2C_MSG_WRITE | I2C_MSG_STOP;
 
-        int ret = i2c_transfer_dt(p_platform->i2c, msgs, 2);
+        int ret = i2c_transfer(p_platform->i2c->bus, msgs, 2, p_platform->address);
         if (ret != 0) {
             return 1;
         }
@@ -48,7 +47,8 @@ uint8_t RdMulti(VL53L5CX_Platform *p_platform, uint16_t RegisterAdress,
     uint8_t addr_buf[2];
     sys_put_be16(RegisterAdress, addr_buf);
 
-    if (i2c_write_read_dt(p_platform->i2c, addr_buf, 2, p_values, size) != 0) {
+    if (i2c_write_read(p_platform->i2c->bus, p_platform->address, 
+                       addr_buf, 2, p_values, size) != 0) {
         return 1;
     }
 
@@ -75,7 +75,7 @@ void SwapBuffer(uint8_t *buffer, uint16_t size)
 
 uint8_t WaitMs(VL53L5CX_Platform *p_platform, uint32_t TimeMs)
 {
-  k_msleep(TimeMs);
-  return 0;
+    k_msleep(TimeMs);
+    return 0;
 }
 

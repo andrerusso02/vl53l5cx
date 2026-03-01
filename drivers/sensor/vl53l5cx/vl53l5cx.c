@@ -5,6 +5,8 @@
 
 #include "vl53l5cx.h"
 
+#define VL53L5CX_INITIAL_ADDRESS  0x29
+
 LOG_MODULE_REGISTER(VL53L5CX, CONFIG_SENSOR_LOG_LEVEL);
 
 static int vl53l5cx_initialize(const struct device *dev)
@@ -13,11 +15,43 @@ static int vl53l5cx_initialize(const struct device *dev)
     struct vl53l5cx_data *data = dev->data; 
 
     data->st_device.platform.i2c = &config->i2c;
+    data->st_device.platform.address = VL53L5CX_INITIAL_ADDRESS;
 
     if (!device_is_ready(config->i2c.bus)) {
         printk("I2C device not ready\n");
         return -ENODEV;
     }
+
+    /* If lpn_gpio is defined, wake the sensor's I2C interface */
+    if (config->lpn_gpio.port != NULL) {
+        gpio_pin_configure_dt(&config->lpn_gpio, GPIO_OUTPUT_ACTIVE);
+        k_msleep(5);
+    }
+
+#ifdef CONFIG_VL53L5CX_RECONFIGURE_ADDRESS
+    /* Early SYS_INIT vl53l5cx_silence_all_sensors disabled all sensors.*/
+    if (config->lpn_gpio.port == NULL) {
+        LOG_ERR("[%s] lpn-gpios required when CONFIG_VL53L5CX_RECONFIGURE_ADDRESS is enabled", dev->name);
+        return -ENODEV;
+    }
+
+    /* Required delay for the VL53L5CX to boot and attach to the I2C bus */
+    k_msleep(1000);  // TODO check if needed
+
+    if (config->i2c.addr != VL53L5CX_INITIAL_ADDRESS) {
+        uint8_t status = vl53l5cx_set_i2c_address(&data->st_device, config->i2c.addr);
+        if (status != VL53L5CX_STATUS_OK) {
+            LOG_ERR("[%s] Failed to set I2C address to %d", dev->name, config->i2c.addr);
+            return -EIO;
+        }
+    }
+#else
+    if (config->i2c.addr != VL53L5CX_INITIAL_ADDRESS) {
+        LOG_ERR("[%s] DT address must be %d unless CONFIG_VL53L5CX_RECONFIGURE_ADDRESS is enabled", dev->name, VL53L5CX_INITIAL_ADDRESS);
+        return -EINVAL;
+    }
+#endif
+
 
     if (vl53l5cx_init(&data->st_device) != VL53L5CX_STATUS_OK)  // Upload firmware
     {
@@ -198,7 +232,7 @@ static const struct sensor_driver_api vl53l5cx_api_funcs = {
 #define VL53L5CX_DEFINE(inst)						                \
     static struct vl53l5cx_config vl53l5cx_##inst##_config = {	    \
         .i2c = I2C_DT_SPEC_INST_GET(inst),                          \
-        /*.xshut = GPIO_DT_SPEC_INST_GET(inst, xshut_gpios),*/      \
+        .lpn_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, lpn_gpios, {0}), \
     };								                                \
                                                                     \
     static struct vl53l5cx_data vl53l5cx_##inst##_driver;		    \
@@ -213,3 +247,27 @@ static const struct sensor_driver_api vl53l5cx_api_funcs = {
 
 
 DT_INST_FOREACH_STATUS_OKAY(VL53L5CX_DEFINE);
+
+
+#ifdef CONFIG_VL53L5CX_RECONFIGURE_ADDRESS
+
+static int vl53l5cx_silence_all_sensors(void)
+{
+#define SILENCE_LPN(inst)                                                       \
+    do {                                                                        \
+        const struct gpio_dt_spec lpn_##inst =                                  \
+            GPIO_DT_SPEC_INST_GET_OR(inst, lpn_gpios, {0});                     \
+        if (lpn_##inst.port != NULL) {                                          \
+            gpio_pin_configure_dt(&lpn_##inst, GPIO_OUTPUT_INACTIVE);           \
+        }                                                                       \
+    } while (0);
+
+    DT_INST_FOREACH_STATUS_OKAY(SILENCE_LPN)
+    
+    return 0;
+}
+
+/* Run before the individual sensor drivers initialize */
+SYS_INIT(vl53l5cx_silence_all_sensors, POST_KERNEL, 10);
+
+#endif /* CONFIG_VL53L5CX_RECONFIGURE_ADDRESS */

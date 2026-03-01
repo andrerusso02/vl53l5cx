@@ -11,7 +11,7 @@ enum sensor_attribute_vl53l5cx {
 
 struct vl53l5cx_config {
 	struct i2c_dt_spec i2c;
-	// struct gpio_dt_spec xshut;
+	struct gpio_dt_spec lpn_gpio;
 };
 
 

@@ -5,6 +5,9 @@ compatible: "st,vl53l5cx"
 
 include: [sensor-device.yaml, i2c-device.yaml]
 
-# properties:
-#   TODO
-
+properties:
+  lpn-gpios:
+    type: phandle-array
+    description: |
+      GPIO connected to the LPn pin. This pin is used to enable/disable 
+      I2C communication and is required for multi-sensor address reconfiguration.

@@ -33,6 +33,13 @@ config VL53L5CX_RANGING_FREQ
     help
       Frequency of measurements.
 
+config VL53L5CX_RECONFIGURE_ADDRESS
+    bool "Reconfigure I2C address at boot"
+    help
+      Enable this if you have multiple sensors on the same I2C bus or need 
+      to change the default I2C address. This requires the lpn-gpios to be 
+      defined in the devicetree for each sensor.
+
 endmenu
 
 endif # VL53L5CX
