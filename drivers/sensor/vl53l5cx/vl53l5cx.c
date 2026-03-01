@@ -185,10 +185,6 @@ static int vl53l5cx_sample_fetch(const struct device *dev, enum sensor_channel c
     if (status != VL53L5CX_STATUS_OK) {
         return -EIO;
     }
-
-    /* Update internal resolution cache for channel_get validation */
-    vl53l5cx_get_resolution(&data->st_device, &data->resolution);
-
     return 0;
 }
 
